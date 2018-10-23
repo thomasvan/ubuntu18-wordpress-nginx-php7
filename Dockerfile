@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-MAINTAINER Thomas Van<thomas@forixdigital.com>
+LABEL maintainer="Thomas Van<thomas@forixdigital.com>"
 
 # Keep upstart from complaining
 RUN dpkg-divert --local --rename --add /sbin/initctl && \
@@ -17,11 +17,11 @@ RUN apt-get update && apt-get -y upgrade && \
 
 
 # Basic Requirements
-RUN apt-get -y install python-setuptools curl git nano sudo unzip openssh-server openssl shellinabox
+RUN apt-get -y install python-setuptools curl git nano sudo unzip openssh-server openssl
 RUN apt-get -y install mysql-server php7.0-fpm
 
 # Magento Requirements
-RUN apt-get -y install php7.0-xml php7.0-mcrypt php7.0-mbstring php7.0-bcmath php7.0-gd php7.0-zip php7.0-mysql php7.0-curl php7.0-intl php7.0-soap php7.0-xdebug
+RUN apt-get -y install php7.0-xml php7.0-mcrypt php7.0-mbstring php7.0-bcmath php7.0-gd php7.0-zip php7.0-mysql php7.0-curl php7.0-intl php7.0-soap
 
 # MySQL config
 RUN sed -i -e"s/^bind-address\s*=\s*127.0.0.1/explicit_defaults_for_timestamp = true\nbind-address = 0.0.0.0/" /etc/mysql/mysql.conf.d/mysqld.cnf
@@ -34,7 +34,7 @@ RUN apt-get -y install nginx && \
     echo "daemon off;" >> /etc/nginx/nginx.conf
 
 # php-fpm config
-RUN phpdismod opcache xdebug && \
+RUN phpdismod opcache && \
     sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php/7.0/fpm/php.ini && \
     sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php/7.0/fpm/php.ini && \
     sed -i -e "s/memory_limit\s*=\s*128M/memory_limit = 2048M/g" /etc/php/7.0/fpm/php.ini && \
@@ -78,6 +78,7 @@ RUN useradd -m -d /home/magento -p $(openssl passwd -1 'magento') -G root -s /bi
     && mkdir -p /home/magento/files/html \
     && chown -R magento: /home/magento/files \
     && chmod -R 775 /home/magento/files
+RUN echo "magento ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Generate private/public key for "magento" user
 RUN sudo -H -u magento bash -c 'echo -e "\n\n\n" | ssh-keygen -t rsa'
@@ -91,7 +92,7 @@ RUN apt-get -y install openjdk-8-jre && \
     mv elasticsearch-5.6.4 /etc/ && \
     mkdir /etc/elasticsearch-5.6.4/logs && \
     touch /etc/elasticsearch-5.6.4/logs/elastic4magento.log && \
-    curl -L -O https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-2.4.6.tar.gz && \
+    curl -L -O https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.4.6/elasticsearch-2.4.6.tar.gz && \
     tar -zxf elasticsearch-2.4.6.tar.gz && \
     mv elasticsearch-2.4.6 /etc/ && \
     mkdir /etc/elasticsearch-2.4.6/logs && \
@@ -130,7 +131,6 @@ EXPOSE 9200
 EXPOSE 9011
 EXPOSE 9000
 EXPOSE 6379
-EXPOSE 4200
 EXPOSE 3306
 EXPOSE 443
 EXPOSE 80
